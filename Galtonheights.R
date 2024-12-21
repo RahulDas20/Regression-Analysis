@@ -25,3 +25,6 @@ galton_heights %>% summarise(mean(father), sd(father), mean(son), sd(son))
 galton_heights %>%
   ggplot(aes(father,son)) +
   geom_point(alpha = 0.5)
+
+#father and son correlation
+galton_heights %>% summarize(cor(father,son))
