@@ -86,3 +86,52 @@ galton_heights |> mutate(father_strata = factor(round(father))) %>%
   summarise(avg = mean(son)) %>%
   ggplot(aes(father_strata, avg)) +
   geom_point()
+
+
+#center of each boxplot
+galton_heights %>% 
+  mutate(father = round(father)) %>%
+  group_by(father) %>%
+  summarise(son_conditional_avarage = mean(son)) %>%
+  ggplot(aes(father,son_conditional_avarage)) +
+  geom_point()
+
+#add regression line to standard data
+r <- galton_heights %>% summarise(r = cor(father, son)) %>% pull(r)
+#we take r as the correlation coefficient of father and son height
+
+galton_heights %>%
+  mutate( father = scale(father),son = scale(son)) %>%
+  mutate(father = round(father)) %>%
+  group_by(father) %>%
+  summarize(son = mean(son)) %>%
+  ggplot(aes(father, son)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = r)
+
+
+#add regression line to the original data
+mu_x <- mean(galton_heights$father)
+mu_y <- mean(galton_heights$son)
+s_x <- sd(galton_heights$father)
+s_y <- sd(galton_heights$son)
+#r is the correlation coefficient
+r <- cor(galton_heights$father, galton_heights$son)
+
+
+#slope will be the correlation coefficient multiplied by(standard deviation of y / standard deviation of x)
+#intercept will be mean of y - (slope * mean of x)
+m <- r * s_y/s_x
+b <- mu_y - m * mu_x
+
+galton_heights %>% 
+  ggplot(aes(father, son)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(intercept = b, slope = m)
+
+
+#plot in standard units and see that intercept 
+galton_heights %>% 
+  ggplot(aes(scale(father), scale(son))) +
+  geom_point(alpha = 0.5) +
+  geom_abline(intercept = 0, slope = r)
