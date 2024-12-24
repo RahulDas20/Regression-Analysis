@@ -61,21 +61,28 @@ data_frame(R) %>% ggplot(aes(sample = R)) +
   geom_abline(intercept = mean(R), slope = sqrt((1-mean(R)^2)/(N-2)))
 
 
-library(Lahman)
+## stratification 
 
-my_team <- Teams %>% filter(yearID %in% 1961:2001)
+sum(galton_heights$father == 72)
+sum(galton_heights$father == 72.5)
 
-#calculate the wins per game
-win_rate <- my_team$W/my_team$G
 
-#calculate the error per game
-error_per_game <- my_team$E / my_team$G
+#conditional average
+conditional_avg <- galton_heights %>%
+  filter(round(father) == 72) %>%
+  summarise(avg = mean(son)) %>%
+  pull(avg)
+conditional_avg
 
-#calculate the doubles per game
-double_per_game <- my_team$X2B/ my_team$G
+#stratification of heights
+galton_heights |> mutate(father_strate = factor(round(father))) |> 
+  ggplot(aes(father_strate, son)) +
+  geom_boxplot() +
+  geom_point()
 
-#calculate the tripples per game
-tripples_per_game <- my_team$X3B / my_team$G
-
-#calculate the correlation
-cor(double_per_game, tripples_per_game)
+#conditional avarage of strata
+galton_heights |> mutate(father_strata = factor(round(father))) %>%
+  group_by(father_strata) %>%
+  summarise(avg = mean(son)) %>%
+  ggplot(aes(father_strata, avg)) +
+  geom_point()
