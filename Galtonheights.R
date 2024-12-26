@@ -135,3 +135,53 @@ galton_heights %>%
   ggplot(aes(scale(father), scale(son))) +
   geom_point(alpha = 0.5) +
   geom_abline(intercept = 0, slope = r)
+
+
+#Regression improved precision
+B <- 1000
+N <- 50
+
+set.seed(1983)
+conditional_avg <- replicate(B, {
+  dat <- sample_n(galton_heights, N)
+  dat %>% filter(round(father) == 72) %>%
+    summarize(avg = mean(son)) %>%
+    pull(avg)
+})
+
+
+regression_prediction <- replicate(B, {
+  dat <- sample_n(galton_heights, N)
+  mu_x <- mean(dat$father)
+  mu_y <- mean(dat$son)
+  s_x <- sd(dat$father)
+  s_y <- sd(dat$son)
+  r <- cor(dat$father, dat$son)
+  mu_y + r*(72 - mu_x)/s_x*s_y
+})
+
+#bivariate normal distribution
+
+galton_heights %>%
+  mutate(z_father = round((father - mean(father))/sd(father))) %>%
+  filter(z_father %in% -2:2) %>%
+  ggplot() +  
+  stat_qq(aes(sample=son)) +
+  facet_wrap(~z_father)
+
+#compute a regression line to predice the son's height
+mu_x <- mean(galton_heights$father)
+mu_y <- mean(galton_heights$son)
+s_x <- sd(galton_heights$father)
+s_y <- sd(galton_heights$son)
+r <- cor(galton_heights$father, galton_heights$son)
+
+#calculate regression of son and father
+m <- 0.5 * 3 / 2
+b <- mu_y - m * mu_x
+m
+b
+
+
+
+
