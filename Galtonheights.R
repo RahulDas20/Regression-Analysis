@@ -184,4 +184,31 @@ b
 
 
 
+#find regression line for predicting runs from bases
+library(tidyverse)
+library(Lahman)
 
+get_slope <- function(x,y) {
+  cor(x,y) * sd(y) / sd(x)
+}
+
+bb_slope <- Teams %>%
+  filter(yearID %in% 1961:2001) %>%
+  mutate(BB_per_game = BB/G,R_per_game = R/G) %>%
+  summarise(slope = get_slope(BB_per_game,R_per_game))
+bb_slope
+
+#compute regression line for predicting runs from singles
+singles_slope <- Teams %>%
+  filter(yearID %in% 1961:2001) %>%
+  mutate(Singles_per_game = (H - HR - X2B - X3B)/G, R_per_game = R/G) %>%
+  summarise(slope = get_slope(Singles_per_game,R_per_game))
+singles_slope
+
+
+#calculation of correlation between HR, BB and singles 
+Teams %>%
+  filter(yearID %in% 1961:2001) %>%
+  mutate(Singles = (H-HR-X2B-X3B)/G, BB = BB/G, HR = HR/G) %>%
+  summarise(cor(BB,HR), cor(Singles,HR), cor(BB, Singles))
+#It means that there is strong correlation between bases on balls and home runs
