@@ -255,4 +255,4 @@ p + geom_abline(intercept = reg_line$intercept, slope = reg_line$slope)
 
 p + geom_smooth(method = "lm")
 
-?summarize
+
