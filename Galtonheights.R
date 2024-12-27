@@ -211,4 +211,48 @@ Teams %>%
   filter(yearID %in% 1961:2001) %>%
   mutate(Singles = (H-HR-X2B-X3B)/G, BB = BB/G, HR = HR/G) %>%
   summarise(cor(BB,HR), cor(Singles,HR), cor(BB, Singles))
+
+
 #It means that there is strong correlation between bases on balls and home runs
+library(Lahman)
+library(tidyverse)
+library(ggplot2)
+p <- Teams |> filter(yearID %in% 1961:2001) |>
+  mutate(HR_per_game = HR/G, R_per_game = R/G) |>
+  ggplot(aes(HR_per_game,R_per_game)) +
+  geom_point(alpha = 0.5)
+
+#The qq_plot confirms that the normal approximation is useful here
+Teams %>% filter(yearID %in% 1962:2001) |>
+  mutate(z_HR = round((HR - mean(HR))/sd(HR)),
+         R_per_game = R/G) |>
+  filter(z_HR %in% -2:3) |>
+  ggplot() +
+  stat_qq(aes(sample = R_per_game)) +
+  facet_wrap(~z_HR)
+
+
+#Now we are ready to use linear regression to predict the number of runs a team will score if we know how many 
+
+summary_stats <- Teams |> 
+  filter(yearID %in% 1962:2001) |>
+  mutate(HR_per_game = HR/G,R_per_game = R/G) |>
+  summarise(avg_HR = mean(HR_per_game),
+            s_HR = sd(HR_per_game),
+            avg_R = mean(R_per_game),
+            s_R = sd(R_per_game),
+            r = cor(HR_per_game,R_per_game))
+summary_stats
+
+
+#Now we will calculate regression line
+reg_line <- summary_stats |> summarise(slope = r * s_R/s_HR,
+                                       intercept = avg_R - slope * avg_HR)
+
+
+p + geom_abline(intercept = reg_line$intercept, slope = reg_line$slope)
+
+
+p + geom_smooth(method = "lm")
+
+?summarize
